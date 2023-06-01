@@ -11,6 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/cli-runtime/pkg/resource"
@@ -114,7 +115,7 @@ func (o *SplitManifestsOptions) Run(streams genericclioptions.IOStreams, cmd *co
 	} {
 		p := filepath.Join(o.OutputDir, d)
 		err := os.Mkdir(p, 0770)
-		if err != nil {
+		if err != nil && !os.IsExist(err) {
 			return fmt.Errorf("can't make directory %q: %w", p, err)
 		}
 	}
@@ -133,7 +134,12 @@ func (o *SplitManifestsOptions) Run(streams genericclioptions.IOStreams, cmd *co
 			return fmt.Errorf("name can't be empty")
 		}
 
-		objBytes, err := yaml.Marshal(info.Object)
+		obj, ok := info.Object.(*unstructured.Unstructured)
+		if !ok {
+			return fmt.Errorf("internal error: object is not Unstructured")
+		}
+
+		objBytes, err := yaml.Marshal(obj.Object)
 		if err != nil {
 			return fmt.Errorf("can't marshal object %q: %w", strings.TrimSpace(info.ObjectName()), err)
 		}

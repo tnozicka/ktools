@@ -2,6 +2,7 @@ package operator
 
 import (
 	"github.com/spf13/cobra"
+	"github.com/tnozicka/ktools/pkg/cmd/snapshotmanifests"
 	"github.com/tnozicka/ktools/pkg/cmd/splitmanifests"
 	"github.com/tnozicka/ktools/pkg/cmd/version"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
@@ -22,6 +23,7 @@ func NewKToolCommand(streams genericclioptions.IOStreams) *cobra.Command {
 
 	cmd.AddCommand(version.NewVersionCmd(streams))
 	cmd.AddCommand(splitmanifests.NewSplitManifestsCmd(streams))
+	cmd.AddCommand(snapshotmanifests.NewSnapshotManifestsCmd())
 
 	return cmd
 }

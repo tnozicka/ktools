@@ -86,6 +86,7 @@ var (
 		"kubernetes.io/bootstrapping",
 		"networking.gke.io/common-webhooks",
 		"istio.io/config",
+		"gateway.istio.io/managed",
 	)
 	managedAnnotations = sets.New(
 		"components.gke.io/component-name",

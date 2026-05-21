@@ -86,15 +86,19 @@ func (c *Collector) getResourceLocation(obj metav1.Object, resourceInfo *Resourc
 		return "", fmt.Errorf("can't get kind for %q: %w", resourceInfo.GroupVersionResource, err)
 	}
 
-	gkString := strings.ToLower(gvk.GroupKind().String())
+	var groupPrefix string
+	if len(gvk.Group) != 0 {
+		groupPrefix = strings.ToLower(gvk.Group) + "_"
+	}
+	gvkString := strings.ToLower(fmt.Sprintf("%s%s_%s", groupPrefix, gvk.Version, gvk.Kind))
 
 	var resourceSubDir, resourceFileName string
 	if c.GroupResources {
-		resourceSubDir = gkString
+		resourceSubDir = gvkString
 		resourceFileName = obj.GetName()
 	} else {
 		resourceSubDir = ""
-		resourceFileName = fmt.Sprintf("%s.%s", obj.GetName(), gkString)
+		resourceFileName = fmt.Sprintf("%s_%s", gvkString, obj.GetName())
 	}
 
 	scope := resourceInfo.RESTScope.Name()

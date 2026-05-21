@@ -185,6 +185,11 @@ func (p *SnapshotPrinter) printObject(resourceInfo *collect.ResourceInfo, obj ku
 	}
 
 	gvk := obj.GetObjectKind().GroupVersionKind()
+
+	if gvk.GroupKind() == corev1.SchemeGroupVersion.WithKind("PersistentVolume").GroupKind() {
+		unstructured.RemoveNestedField(u, "spec", "claimRef")
+	}
+
 	gko := groupKindObj{
 		GroupKind: gvk.GroupKind(),
 		Name:      obj.GetName(),

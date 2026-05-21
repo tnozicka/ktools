@@ -86,6 +86,7 @@ var (
 		"kubernetes.io/bootstrapping",
 		"networking.gke.io/common-webhooks",
 		"istio.io/config",
+		"gateway.istio.io/managed",
 	)
 	managedAnnotations = sets.New(
 		"components.gke.io/component-name",
@@ -184,6 +185,11 @@ func (p *SnapshotPrinter) printObject(resourceInfo *collect.ResourceInfo, obj ku
 	}
 
 	gvk := obj.GetObjectKind().GroupVersionKind()
+
+	if gvk.GroupKind() == corev1.SchemeGroupVersion.WithKind("PersistentVolume").GroupKind() {
+		unstructured.RemoveNestedField(u, "spec", "claimRef")
+	}
+
 	gko := groupKindObj{
 		GroupKind: gvk.GroupKind(),
 		Name:      obj.GetName(),

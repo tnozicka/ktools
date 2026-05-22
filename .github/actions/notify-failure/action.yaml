@@ -1,0 +1,26 @@
+name: "Notify"
+description: "Notify maintainers"
+inputs:
+  slack-url:
+    description: "URL of the Slack webhook"
+    required: true
+  text:
+    description: "Text of the message"
+    default: |-
+      :warning: CI workflow "${{ github.workflow }}" triggered on "${{ github.event_name }}" event from ${{ github.ref }} (${{ github.sha }}) failed!
+      :fire_extinguisher: See https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }} for details.:fire:
+runs:
+  using: "composite"
+  steps:
+  - name: Send message to Slack
+    shell: bash
+    working-directory: ./
+    run: |
+      # Avoid printing the secret to logs.
+      set +x
+      curl --fail --retry 42 -X POST -H 'Content-type: application/json' --data @<( cat <<-EOF
+      {
+        "text": ${{ toJSON(inputs.text) }}
+      }
+      EOF
+      ) '${{ inputs.slack-url }}'

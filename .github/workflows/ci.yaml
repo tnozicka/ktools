@@ -1,0 +1,84 @@
+name: Go
+
+on:
+  push:
+    branches:
+    - main
+    - 'release-[0-9]+.[0-9]+'
+  pull_request:
+    branches:
+    - '**'
+    types:
+    - opened
+    - edited
+    - reopened
+    - synchronize
+  merge_group:
+  schedule:
+  - cron:  '0 19 * * *' # daily at 7pm UTC
+  workflow_dispatch:  # Allow manual triggering
+
+permissions:
+  id-token: write
+  contents: read
+  packages: write
+
+env:
+  retention_days: 90
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-24.04
+    container:
+      image: quay.io/tnozicka/images:golang-tools-1.26
+      options: --user 1001:1001
+    timeout-minutes: 15
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for all branches and tags so git describe works.
+
+    - name: Verify
+      run: make verify -k --warn-undefined-variables
+
+  build:
+    name: Build
+    runs-on: ubuntu-24.04
+    container:
+      image: quay.io/tnozicka/images:golang-tools-1.26
+      options: --user 1001:1001
+    timeout-minutes: 15
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for all branches and tags so git describe works.
+
+    - name: Build
+      run: make build --warn-undefined-variables
+
+  test-unit:
+    name: Test unit
+    runs-on: ubuntu-24.04
+    container:
+      image: quay.io/tnozicka/images:golang-tools-1.26
+      options: --user 1001:1001
+    timeout-minutes: 15
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch all history for all branches and tags so git describe works.
+
+    - name: Make sure new unit tests aren't flaky
+      if: contains(fromJSON('["pull_request","merge_group"]'), github.event_name)
+      run: |
+        set -euExo pipefail
+        shopt -s inherit_errexit
+        
+        echo "GO_TEST_EXTRA_FLAGS=-count=3" | tee -a ${GITHUB_ENV}
+
+    - name: Test
+      run: make test --warn-undefined-variables

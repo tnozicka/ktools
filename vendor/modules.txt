@@ -139,6 +139,7 @@ github.com/spf13/cobra
 github.com/spf13/pflag
 # github.com/tnozicka/k8s-controller-lib v0.1.0
 ## explicit; go 1.26
+github.com/tnozicka/k8s-controller-lib/makefiles
 github.com/tnozicka/k8s-controller-lib/pkg/genericclioptions
 github.com/tnozicka/k8s-controller-lib/pkg/kubetypes
 github.com/tnozicka/k8s-controller-lib/pkg/leaderelection

@@ -13,7 +13,7 @@ func NewKToolCommand(streams genericclioptions.IOStreams) *cobra.Command {
 		Use:   "ktool",
 		Short: "Run the ktool.",
 		Long:  `Run the ktool.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			return cmd.Help()
 		},
 

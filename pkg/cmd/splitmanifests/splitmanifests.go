@@ -53,7 +53,7 @@ func NewSplitManifestsCmd(streams genericclioptions.IOStreams) *cobra.Command {
 		Use:   "split-manifests",
 		Short: "Run the splitManifests.",
 		Long:  `Run the splitManifests.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			err := o.Validate()
 			if err != nil {
 				return err
@@ -64,7 +64,7 @@ func NewSplitManifestsCmd(streams genericclioptions.IOStreams) *cobra.Command {
 				return err
 			}
 
-			err = o.Run(streams, cmd)
+			err = o.Run(cmd)
 			if err != nil {
 				return err
 			}
@@ -98,7 +98,7 @@ func (o *SplitManifestsOptions) Complete() error {
 	return nil
 }
 
-func (o *SplitManifestsOptions) Run(streams genericclioptions.IOStreams, cmd *cobra.Command) error {
+func (o *SplitManifestsOptions) Run(cmd *cobra.Command) error {
 	cliflag.PrintFlags(cmd.Flags())
 
 	filenameOptions := o.FileNameFlags.ToOptions()

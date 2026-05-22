@@ -7,7 +7,7 @@ import (
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
-	"github.com/tnozicka/k8s-controller-lib/pkg/genericclioptions"
+	"github.com/tnozicka/ktools/pkg/collect"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -20,7 +20,7 @@ import (
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/klog/v2"
 
-	"github.com/tnozicka/ktools/pkg/collect"
+	"github.com/tnozicka/k8s-controller-lib/pkg/genericclioptions"
 )
 
 type SnapshotManifestsOptions struct {
@@ -58,7 +58,7 @@ func NewSnapshotManifestsCmd() *cobra.Command {
 		
 		(At this point this based on existing collection logic and filters resources only after fetching them from the API.)
 		`),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			err := o.Validate()
 			if err != nil {
 				return err
@@ -81,7 +81,7 @@ func NewSnapshotManifestsCmd() *cobra.Command {
 		SilenceUsage:  true,
 	}
 
-	o.ClientConfig.AddFlags(cmd.Flags())
+	o.AddFlags(cmd.Flags())
 
 	cmd.Flags().StringVarP(&o.OutputDir, "output-dir", "o", o.OutputDir, "Directory to place the collected manifests.")
 	cmd.Flags().BoolVarP(&o.KeepGoing, "keep-going", "", o.KeepGoing, "Continue collecting on errors instead of stopping at the first error.")

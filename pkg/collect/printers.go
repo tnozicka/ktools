@@ -3,10 +3,11 @@ package collect
 import (
 	"fmt"
 
-	"github.com/tnozicka/k8s-controller-lib/pkg/kubetypes"
-	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 	"k8s.io/apimachinery/pkg/api/meta"
 	"sigs.k8s.io/yaml"
+
+	"github.com/tnozicka/k8s-controller-lib/pkg/kubetypes"
+	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 )
 
 type PrinterInterface interface {

@@ -7,13 +7,14 @@ import (
 	"maps"
 	"slices"
 
-	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	"k8s.io/klog/v2"
+
+	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 )
 
 // ReplaceIsometricResources removes old isometric resources if their newer variant is present.
@@ -52,7 +53,7 @@ func ReplaceIsometricResources(resourceInfos []*ResourceInfo) ([]*ResourceInfo, 
 	return slices.Collect(maps.Values(resourceInfosMap)), nil
 }
 
-func (c *Collector) DiscoverResources(ctx context.Context, filter discovery.ResourcePredicateFunc) ([]*ResourceInfo, error) {
+func (c *Collector) DiscoverResources(_ context.Context, filter discovery.ResourcePredicateFunc) ([]*ResourceInfo, error) {
 	all, err := c.discoveryClient.ServerPreferredResources()
 	if err != nil {
 		return nil, fmt.Errorf("can't discover preferred resources: %w", err)
@@ -87,7 +88,7 @@ func (c *Collector) DiscoverResources(ctx context.Context, filter discovery.Reso
 }
 
 func (c *Collector) collectNamespace(ctx context.Context, resourceInfo *ResourceInfo, u *unstructured.Unstructured) error {
-	err := c.writeObject(ctx, resourceInfo, u)
+	err := c.writeObject(resourceInfo, u)
 	if err != nil {
 		return fmt.Errorf("can't write namespace %q: %w", clnaming.ObjResourceNN(resourceInfo.GroupVersionResource, u), err)
 	}

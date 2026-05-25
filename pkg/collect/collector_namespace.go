@@ -109,7 +109,7 @@ func (c *Collector) collectNamespace(ctx context.Context, resourceInfo *Resource
 	// Filter out kube resources that share storage across API groups.
 	namespacedResourceInfos, err = ReplaceIsometricResources(namespacedResourceInfos)
 	if err != nil {
-		return fmt.Errorf("can't repalce isometric resources: %w", err)
+		return fmt.Errorf("can't replace isometric resources: %w", err)
 	}
 
 	namespace := u.GetName()
@@ -123,7 +123,7 @@ func (c *Collector) collectNamespace(ctx context.Context, resourceInfo *Resource
 				break
 			}
 
-			klog.Error(err, "Can't collect resource", "Resource", m.Resource, "Namespace", namespace)
+			klog.ErrorS(err, "Can't collect resource", "Resource", m.Resource, "Namespace", namespace)
 		}
 	}
 

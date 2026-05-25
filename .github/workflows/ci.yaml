@@ -138,7 +138,7 @@ jobs:
         set -euExo pipefail
         shopt -s inherit_errexit
 
-        image_ref="ghcr.io/${{ github.repository }}:ktool-${{ github.run_number }}-${{ github.run_attempt }}-${{ matrix.arch }}"
+        image_ref="ghcr.io/${{ github.repository }}:ktool-ci-${{ github.run_number }}-${{ github.run_attempt }}-${{ matrix.arch }}"
         
         git_revision="$( git rev-parse HEAD )"
         buildah build --squash --format=docker \
@@ -192,7 +192,8 @@ jobs:
         set -euExo pipefail
         shopt -s inherit_errexit
 
-        ci_image_ref="ghcr.io/${{ github.repository }}:ktool-${{ github.run_number }}-${{ github.run_attempt }}"
+        ci_repo_ref="ghcr.io/${{ github.repository }}:ktool"
+        ci_image_ref="${ci_repo_ref}-ci-${{ github.run_number }}-${{ github.run_attempt }}"
 
         source ./hack/ci/lib/tag-from-gh-ref.sh
         
@@ -208,7 +209,7 @@ jobs:
           dest_image_tag="$( tag_from_gh_ref "${GITHUB_REF}" )"
           timestamp="$( date '+%Y-%m-%d-%H%M%S' )"
 
-          skopeo copy --all --digestfile="${digestfile}" "docker://${ci_image_ref}" "docker://${ci_image_ref}-${timestamp}"
+          skopeo copy --all --digestfile="${digestfile}" "docker://${ci_image_ref}" "docker://${ci_repo_ref}-${dest_image_tag}-${timestamp}"
           echo '' | cat "${digestfile}" -
         
           skopeo copy --all --digestfile="${digestfile}" "docker://${ci_image_ref}" "docker://quay.io/tnozicka/ktool:${dest_image_tag}"

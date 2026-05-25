@@ -530,8 +530,6 @@ github.com/timonwong/loggercheck v0.11.0 h1:jdaMpYBl+Uq9mWPXv1r8jc5fC3gyXx4/WGwT
 github.com/timonwong/loggercheck v0.11.0/go.mod h1:HEAWU8djynujaAVX7QI65Myb8qgfcZ1uKbdpg3ZzKl8=
 github.com/tnozicka/k8s-controller-lib v0.1.0 h1:wdTxRXIT2RG0v4gfwjHTaBiZbVPUOE5hyv3VTiqlo5c=
 github.com/tnozicka/k8s-controller-lib v0.1.0/go.mod h1:vWoXeCDCSpQK+id+/ACGLkf+ylI9oQABVdTM+XvAJsQ=
-github.com/tnozicka/ktools v0.0.0-20260521075522-98d38baeba5c h1:xF3eV0cFfCVxOgEIKr3UIOkDPPaVmDRa90LYkwJ1rvg=
-github.com/tnozicka/ktools v0.0.0-20260521075522-98d38baeba5c/go.mod h1:YEjhrxy7Jy7uMipLLVwLp5LJxHJLbTDb3/JPajXTpC4=
 github.com/tomarrell/wrapcheck/v2 v2.12.0 h1:H/qQ1aNWz/eeIhxKAFvkfIA+N7YDvq6TWVFL27Of9is=
 github.com/tomarrell/wrapcheck/v2 v2.12.0/go.mod h1:AQhQuZd0p7b6rfW+vUwHm5OMCGgp63moQ9Qr/0BpIWo=
 github.com/tommy-muehle/go-mnd/v2 v2.5.1 h1:NowYhSdyE/1zwK9QCLeRb6USWdoif80Ie+v+yU8u1Zw=

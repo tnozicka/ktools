@@ -1,4 +1,4 @@
-module github.com/tnozicka/ktools-2
+module github.com/tnozicka/ktools
 
 go 1.26.0
 
@@ -7,7 +7,6 @@ require (
 	github.com/lithammer/dedent v1.1.0
 	github.com/spf13/cobra v1.10.2
 	github.com/tnozicka/k8s-controller-lib v0.1.0
-	github.com/tnozicka/ktools v0.0.0-20260521075522-98d38baeba5c
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.36.1
 	k8s.io/apiextensions-apiserver v0.36.1

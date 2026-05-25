@@ -1011,14 +1011,6 @@ github.com/tnozicka/k8s-controller-lib/pkg/leaderelection
 github.com/tnozicka/k8s-controller-lib/pkg/naming
 github.com/tnozicka/k8s-controller-lib/pkg/signals
 github.com/tnozicka/k8s-controller-lib/pkg/version
-# github.com/tnozicka/ktools v0.0.0-20260521075522-98d38baeba5c
-## explicit; go 1.26
-github.com/tnozicka/ktools/pkg/cmd
-github.com/tnozicka/ktools/pkg/cmd/snapshotmanifests
-github.com/tnozicka/ktools/pkg/cmd/splitmanifests
-github.com/tnozicka/ktools/pkg/cmd/version
-github.com/tnozicka/ktools/pkg/collect
-github.com/tnozicka/ktools/pkg/version
 # github.com/tomarrell/wrapcheck/v2 v2.12.0
 ## explicit; go 1.24.0
 github.com/tomarrell/wrapcheck/v2/wrapcheck

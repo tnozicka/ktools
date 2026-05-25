@@ -7,14 +7,13 @@ import (
 	"maps"
 	"slices"
 
+	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	"k8s.io/klog/v2"
-
-	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 )
 
 // ReplaceIsometricResources removes old isometric resources if their newer variant is present.

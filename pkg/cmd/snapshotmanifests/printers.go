@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/tnozicka/ktools/pkg/collect"
+	"github.com/tnozicka/k8s-controller-lib/pkg/kubetypes"
+	"github.com/tnozicka/k8s-controller-lib/pkg/naming"
 	corev1 "k8s.io/api/core/v1"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -15,8 +16,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/klog/v2"
 
-	"github.com/tnozicka/k8s-controller-lib/pkg/kubetypes"
-	"github.com/tnozicka/k8s-controller-lib/pkg/naming"
+	"github.com/tnozicka/ktools/pkg/collect"
 )
 
 type groupKindObj struct {

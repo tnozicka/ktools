@@ -4,11 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-
-	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 )
 
 func isPublicSecretKey(key string) bool {

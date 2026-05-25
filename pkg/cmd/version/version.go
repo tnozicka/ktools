@@ -5,9 +5,10 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/tnozicka/ktools/pkg/version"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	cliflag "k8s.io/component-base/cli/flag"
+
+	"github.com/tnozicka/ktools/pkg/version"
 )
 
 type VersionOptions struct {

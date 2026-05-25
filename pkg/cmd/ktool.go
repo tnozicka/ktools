@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"k8s.io/cli-runtime/pkg/genericclioptions"
+
 	"github.com/tnozicka/ktools/pkg/cmd/snapshotmanifests"
 	"github.com/tnozicka/ktools/pkg/cmd/splitmanifests"
 	"github.com/tnozicka/ktools/pkg/cmd/version"
-	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
 func NewKToolCommand(streams genericclioptions.IOStreams) *cobra.Command {

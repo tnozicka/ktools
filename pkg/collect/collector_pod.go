@@ -8,14 +8,13 @@ import (
 	"path/filepath"
 	"slices"
 
+	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/klog/v2"
-
-	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 )
 
 func retrieveContainerLogs(

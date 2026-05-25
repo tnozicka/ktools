@@ -35,7 +35,7 @@ formatters:
       sections:
       - standard
       - default
-      - prefix(github.com/tnozicka/k8s-controller-lib)
+      - prefix(github.com/tnozicka/ktools)
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0

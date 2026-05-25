@@ -209,7 +209,7 @@ jobs:
           dest_image_tag="$( tag_from_gh_ref "${GITHUB_REF}" )"
           timestamp="$( date '+%Y-%m-%d-%H%M%S' )"
 
-          skopeo copy --all --digestfile="${digestfile}" "docker://${ci_image_ref}" "docker://${ci_repo_ref}-${dest_image_tag}-${timestamp}"
+          skopeo copy --all --digestfile="${digestfile}" "docker://${ci_image_ref}" "docker://quay.io/tnozicka/ktool:${dest_image_tag}-${timestamp}"
           echo '' | cat "${digestfile}" -
         
           skopeo copy --all --digestfile="${digestfile}" "docker://${ci_image_ref}" "docker://quay.io/tnozicka/ktool:${dest_image_tag}"

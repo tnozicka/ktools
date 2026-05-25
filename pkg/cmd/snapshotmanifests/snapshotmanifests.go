@@ -7,7 +7,7 @@ import (
 
 	"github.com/lithammer/dedent"
 	"github.com/spf13/cobra"
-	"github.com/tnozicka/ktools/pkg/collect"
+	"github.com/tnozicka/k8s-controller-lib/pkg/genericclioptions"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -20,7 +20,7 @@ import (
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/klog/v2"
 
-	"github.com/tnozicka/k8s-controller-lib/pkg/genericclioptions"
+	"github.com/tnozicka/ktools/pkg/collect"
 )
 
 type SnapshotManifestsOptions struct {

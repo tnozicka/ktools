@@ -7,14 +7,13 @@ import (
 	"maps"
 	"slices"
 
+	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	"k8s.io/klog/v2"
-
-	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 )
 
 // ReplaceIsometricResources removes old isometric resources if their newer variant is present.
@@ -110,7 +109,7 @@ func (c *Collector) collectNamespace(ctx context.Context, resourceInfo *Resource
 	// Filter out kube resources that share storage across API groups.
 	namespacedResourceInfos, err = ReplaceIsometricResources(namespacedResourceInfos)
 	if err != nil {
-		return fmt.Errorf("can't repalce isometric resources: %w", err)
+		return fmt.Errorf("can't replace isometric resources: %w", err)
 	}
 
 	namespace := u.GetName()
@@ -124,7 +123,7 @@ func (c *Collector) collectNamespace(ctx context.Context, resourceInfo *Resource
 				break
 			}
 
-			klog.Error(err, "Can't collect resource", "Resource", m.Resource, "Namespace", namespace)
+			klog.ErrorS(err, "Can't collect resource", "Resource", m.Resource, "Namespace", namespace)
 		}
 	}
 

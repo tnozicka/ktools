@@ -3,7 +3,7 @@ name: Recurring checks
 on:
   push:
     branches:
-    - main
+    - master
   schedule:
   - cron:  '0 22 * * *' # daily at 7pm UTC
   workflow_dispatch:  # Allow manual triggering

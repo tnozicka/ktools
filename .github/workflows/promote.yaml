@@ -1,0 +1,197 @@
+name: Promote image
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+
+on:
+  workflow_dispatch:
+    inputs:
+      source-tag:
+        type: string
+        required: true
+        description: |
+          source-tag is the image tag of the source image you are trying to promote.
+          (e.g. `0.1-2026-01-31-104259`, `0.1.0`, `@sha256:<hash>`)
+          Don't use rolling tags..
+
+      target-tag:
+        type: string
+        required: true
+        description: |
+          target-tag is the tag of the image to be created.
+          Must be SemVer. (e.g. `0.1.0-rc.0`)
+
+      force:
+        type: boolean
+        default: false
+        description: |
+          force will overwrite exiting tags. Use with caution.
+
+jobs:
+  resolve-image:
+    name: Resolve image
+    runs-on: ubuntu-24.04
+    outputs:
+      image-ref-simple: ${{ steps.resolve-image.outputs.image-ref-simple }}
+      source-url: ${{ steps.resolve-image.outputs.source-url }}
+      source-revision: ${{ steps.resolve-image.outputs.source-revision }}
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Resolve image
+      id: resolve-image
+      uses: ./.github/actions/resolve-image
+      with:
+        image-ref: 'quay.io/tnozicka/ktool:${{ inputs.source-tag }}'
+        registry-user: '${{ secrets.QUAY_USER }}'
+        registry-password: '${{ secrets.QUAY_PASSWORD }}'
+
+    - name: Summary and verification
+      env:
+        SOURCE_TAG: '${{ inputs.source-tag }}'
+        RESOLVED_IMAGE_REF: '${{ steps.resolve-image.outputs.image-ref }}'
+        RESOLVED_IMAGE_REF_SIMPLE: '${{ steps.resolve-image.outputs.image-ref-simple }}'
+        SOURCE_URL: '${{ steps.resolve-image.outputs.source-url }}'
+        SOURCE_REVISION: '${{ steps.resolve-image.outputs.source-revision }}'
+        SOURCE_REVISION_URL: '${{ steps.resolve-image.outputs.source-revision-url }}'
+        TARGET_TAG: '${{ inputs.target-tag }}'
+      run: |
+        set -euEo pipefail
+        shopt -s inherit_errexit
+
+        echo -e "*** Source tag ***:              ${SOURCE_TAG}"
+        echo -e "Resolved image reference:        ${RESOLVED_IMAGE_REF}"
+        echo -e "Resolved image reference (sha):  ${RESOLVED_IMAGE_REF_SIMPLE}"
+        echo -e "Source code URL:                 ${SOURCE_URL}"
+        echo -e "Source code revision:            ${SOURCE_REVISION}"
+        echo -e "Source code revision URL:        ${SOURCE_REVISION_URL}"
+        echo -e ""
+        echo -e "*** Target tag ***:              ${TARGET_TAG}"
+
+        set -x
+
+        [[ -n "${SOURCE_TAG}" ]]
+        [[ -n "${RESOLVED_IMAGE_REF}" ]]
+        [[ -n "${RESOLVED_IMAGE_REF_SIMPLE}" ]]
+        [[ -n "${SOURCE_URL}" ]]
+        [[ -n "${SOURCE_REVISION}" ]]
+        [[ -n "${SOURCE_REVISION_URL}" ]]
+        [[ -n "${TARGET_TAG}" ]]
+
+        # Make sure we only promote semver tags.
+        function validate_semver {
+          echo "${1}" | grep -P -e '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
+        }
+        validate_semver "${TARGET_TAG}"
+
+  promote-image:
+    name: Promote image
+    runs-on: ubuntu-24.04
+    needs:
+    - resolve-image
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Log in to CI container image registry
+      run: |
+        set -euEo pipefail +x
+        shopt -s inherit_errexit
+
+        echo '${{ github.token }}' | podman login "ghcr.io/${GITHUB_REPOSITORY@L}" -u='${{ github.actor }}' --password-stdin
+
+    - name: Log in to quay.io/tnozicka
+      run: |
+        set -euEo pipefail +x
+        shopt -s inherit_errexit
+
+        echo '${{ secrets.QUAY_PASSWORD }}' | buildah login 'quay.io/tnozicka' -u='${{ secrets.QUAY_USER }}' --password-stdin
+
+    - name: Promote image
+      env:
+        SOURCE_REF: '${{ needs.resolve-image.outputs.image-ref-simple }}'
+        TARGET_TAG: '${{ inputs.target-tag }}'
+      run: |
+        set -euExo pipefail
+        shopt -s inherit_errexit
+
+        source ./hack/ci/lib/images.sh
+
+        [[ -n "${SOURCE_REF}" ]]
+        [[ -n "${TARGET_TAG}" ]]
+
+        dest_repos=(
+          'quay.io/tnozicka/ktool'
+        )
+
+        if [[ "${{ inputs.force }}" != "true" ]]; then
+          for repo in "${dest_repos[@]}"; do
+            verify-no-tag-exists "${repo}" "${TARGET_TAG}"
+          done
+        fi
+
+        digestfile="$( mktemp )"
+        for repo in "${dest_repos[@]}"; do
+          skopeo copy --all --digestfile="${digestfile}" "docker://${SOURCE_REF}" "docker://${repo}:${TARGET_TAG}"
+          echo '' | cat "${digestfile}" -
+        done
+
+  promote-git-tag:
+    name: Promote Git tag
+    runs-on: ubuntu-24.04
+    needs:
+    - resolve-image
+    - promote-image
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+
+    - name: Set up Git info
+      run: |
+        git config --global user.name "${GITHUB_ACTOR}"
+        git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+    - name: Promote Git tag
+      env:
+        SOURCE_URL: '${{ needs.resolve-image.outputs.source-url }}'
+        SOURCE_REVISION: '${{ needs.resolve-image.outputs.source-revision }}'
+        TARGET_TAG: '${{ inputs.target-tag }}'
+      run: |
+        set -euExo pipefail
+        shopt -s inherit_errexit
+
+        [[ "${SOURCE_URL}" == "https://github.com/${{ github.repository }}" ]]
+
+        [[ -n "${SOURCE_REVISION}" ]]
+        [[ -n "${TARGET_TAG}" ]]
+
+        git_tag="v${TARGET_TAG}"
+
+        git tag -a "${git_tag}" "${SOURCE_REVISION}" -m "${git_tag}"
+        git push origin "${git_tag}"
+
+
+  notify-on-failure:
+    name: Notify on failure
+    runs-on: ubuntu-24.04
+    needs:
+    - resolve-image
+    - promote-image
+    - promote-git-tag
+    timeout-minutes: 15
+    if: ${{ failure() && github.event_name != 'pull_request' }}
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Report failures to Slack
+      if: ${{ always() }}
+      uses: ./.github/actions/notify-failure
+      with:
+        slack-url: '${{ secrets.SLACK_WEBHOOK_URL }}'

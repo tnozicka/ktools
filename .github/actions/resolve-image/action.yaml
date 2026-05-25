@@ -1,0 +1,70 @@
+name: "Resolve image reference"
+description: "Resolves image reference into full reference (using sha) and source code information"
+inputs:
+  image-ref:
+    required: true
+    description: "Image to resolve"
+  registry-user:
+    description: "Registry user (read only)"
+    required: true
+  registry-password:
+    description: "Registry password"
+    required: true
+outputs:
+  image-ref:
+    description: |
+      Resolved image reference (using tag+sha)
+    value: ${{ steps.resolve-image-worker.outputs.image-ref }}
+  image-ref-simple:
+    description: |
+      Resolved image reference (using sha only)
+    value: ${{ steps.resolve-image-worker.outputs.image-ref-simple }}
+  source-url:
+    description: |
+      URL of the source code the image was built from.
+      (Uses "org.opencontainers.image.source" label.)
+    value: ${{ steps.resolve-image-worker.outputs.source-url }}
+  source-revision:
+    description: |
+      Revision of the source code the image was built from.
+      (Uses "org.opencontainers.image.revision" label.)
+    value: ${{ steps.resolve-image-worker.outputs.source-revision }}
+  source-revision-url:
+    description: |
+      URL to view the revision commit.
+    value: ${{ steps.resolve-image-worker.outputs.source-revision-url }}
+
+runs:
+  using: "composite"
+  steps:
+  - name: "Log in to container image registry"
+    shell: bash
+    run: |
+      set -euExo pipefail
+      shopt -s inherit_errexit
+
+      image_ref='${{ inputs.image-ref }}'
+      echo '${{ inputs.registry-password }}' | skopeo login "${image_ref%%/*}" -u='${{ inputs.registry-user }}' --password-stdin
+
+  - name: Resolve image
+    id: resolve-image-worker
+    shell: bash
+    working-directory: ./
+    run: |
+      set -euExo pipefail
+      shopt -s inherit_errexit
+
+      source ./hack/ci/lib/images.sh
+
+      image_ref="$( resolve-image '${{ inputs.image-ref }}' )"
+      echo "image-ref=${image_ref}" >> "${GITHUB_OUTPUT}"
+
+      image_ref_simple="$( resolve-image-simple '${{ inputs.image-ref }}' )"
+      echo "image-ref-simple=${image_ref_simple}" >> "${GITHUB_OUTPUT}"
+
+      image_source_url="$( skopeo inspect '--format={{ index .Labels "org.opencontainers.image.source" }}' 'docker://${{ inputs.image-ref }}' )"
+      echo "source-url=${image_source_url}" >> "${GITHUB_OUTPUT}"
+
+      image_revision="$( skopeo inspect '--format={{ index .Labels "org.opencontainers.image.revision" }}' 'docker://${{ inputs.image-ref }}' )"
+      echo "source-revision=${image_revision}" >> "${GITHUB_OUTPUT}"
+      echo "source-revision-url=${image_source_url}/commit/${image_revision}" >> "${GITHUB_OUTPUT}"

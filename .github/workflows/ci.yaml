@@ -47,7 +47,15 @@ jobs:
 
   build:
     name: Build
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - arch: amd64
+          runner: ubuntu-24.04
+        - arch: arm64
+          runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     container:
       image: quay.io/tnozicka/images:golang-tools-1.26
       options: --user 1001:1001
@@ -65,7 +73,15 @@ jobs:
 
   test-unit:
     name: Test unit
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - arch: amd64
+          runner: ubuntu-24.04
+        - arch: arm64
+          runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     container:
       image: quay.io/tnozicka/images:golang-tools-1.26
       options: --user 1001:1001
@@ -89,6 +105,116 @@ jobs:
     - name: Test
       run: make test --warn-undefined-variables
 
+  image-build:
+    name: Build images (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - arch: amd64
+          runner: ubuntu-24.04
+        - arch: arm64
+          runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0  # Fetch all history for all branches and tags so git describe works.
+
+    - name: Log in to CI container image registry
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        set -euEo pipefail +x
+        shopt -s inherit_errexit
+
+        echo "${GITHUB_TOKEN}" | buildah login "ghcr.io/${{ github.repository }}" -u="${GITHUB_ACTOR}" --password-stdin
+
+    - name: Build images
+      shell: bash
+      run: |
+        set -euExo pipefail
+        shopt -s inherit_errexit
+
+        image_ref="ghcr.io/${{ github.repository }}:ktool-${{ github.run_number }}-${{ github.run_attempt }}-${{ matrix.arch }}"
+        
+        git_revision="$( git rev-parse HEAD )"
+        buildah build --squash --format=docker \
+        --label="org.opencontainers.image.revision=${git_revision}" \
+        --tag="${image_ref}" .
+        
+        digestfile="$( mktemp )"
+        buildah push --digestfile="${digestfile}" "${image_ref}"
+        echo '' | cat "${digestfile}" -
+
+  image-manifest:
+    name: Create manifest list
+    runs-on: ubuntu-24.04
+    needs:
+    - image-build
+    timeout-minutes: 30
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v6
+
+    - name: Configure promotions
+      shell: bash
+      if: ${{ contains(fromJSON('["push", "schedule"]'), github.event_name) }}
+      run: |
+        set -euEo pipefail +x
+        shopt -s inherit_errexit
+
+        echo "CI_PROMOTE=true" | tee -a "${GITHUB_ENV}"
+
+    - name: Log in to CI container image registry
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        set -euEo pipefail +x
+        shopt -s inherit_errexit
+
+        echo "${GITHUB_TOKEN}" | buildah login "ghcr.io/${{ github.repository }}" -u="${GITHUB_ACTOR}" --password-stdin
+
+    - name: Log in to quay
+      shell: bash
+      if: ${{ env.CI_PROMOTE == 'true' }}
+      run: |
+        set -euEo pipefail +x
+        shopt -s inherit_errexit
+
+        echo '${{ secrets.QUAY_PASSWORD }}' | buildah login 'quay.io/tnozicka/ktool' -u='${{ secrets.QUAY_USER }}' --password-stdin
+
+    - name: Assemble images
+      shell: bash
+      run: |
+        set -euExo pipefail
+        shopt -s inherit_errexit
+
+        ci_image_ref="ghcr.io/${{ github.repository }}:ktool-${{ github.run_number }}-${{ github.run_attempt }}"
+
+        source ./hack/ci/lib/tag-from-gh-ref.sh
+        
+        buildah manifest create "${ci_image_ref}"
+        for arch in amd64 arm64; do
+          buildah manifest add "${ci_image_ref}" "docker://${ci_image_ref}-${arch}"
+        done
+        
+        digestfile="$( mktemp )"
+        buildah manifest push --all --digestfile="${digestfile}" "${ci_image_ref}" "docker://${ci_image_ref}"
+
+        if [[ "${{ env.CI_PROMOTE }}" == "true" ]]; then
+          dest_image_tag="$( tag_from_gh_ref "${GITHUB_REF}" )"
+          timestamp="$( date '+%Y-%m-%d-%H%M%S' )"
+
+          skopeo copy --all --digestfile="${digestfile}" "docker://${ci_image_ref}" "docker://${ci_image_ref}-${timestamp}"
+          echo '' | cat "${digestfile}" -
+        
+          skopeo copy --all --digestfile="${digestfile}" "docker://${ci_image_ref}" "docker://quay.io/tnozicka/ktool:${dest_image_tag}"
+          echo '' | cat "${digestfile}" -
+        fi
+
   # Wait for gating jobs so other steps have a unified step to wait on.
   gating-tests:
     name: Wait for gating tests
@@ -97,6 +223,8 @@ jobs:
     - verify
     - build
     - test-unit
+    - image-build
+    - image-manifest
     if: ${{ always() }}
     steps:
     - name: Fail if any gating dependency failed

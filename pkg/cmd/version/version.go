@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	version "github.com/tnozicka/ktools/pkg/version"
+	"github.com/tnozicka/ktools/pkg/version"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	cliflag "k8s.io/component-base/cli/flag"
 )
@@ -26,7 +26,7 @@ func NewVersionCmd(streams genericclioptions.IOStreams) *cobra.Command {
 		Use:   "version",
 		Short: "Show version info.",
 		Long:  "Show version info.",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			err := o.Validate()
 			if err != nil {
 				return err

@@ -1,0 +1,41 @@
+version: "2"
+linters:
+  default: none
+  enable: # add optional linters: https://golangci-lint.run/usage/linters/
+  - gocritic
+  - misspell
+  - errcheck
+  - unused
+  - godox
+  - revive
+  exclusions:
+    presets: []
+    paths:
+    - mock
+  settings:
+    godox:
+      keywords:
+      - FIXME
+    revive:
+      severity: error
+      enable-default-rules: true
+      rules:
+      - name: exported
+        disabled: true
+      - name: package-comments
+        disabled: true
+      - name: var-naming
+        disabled: true
+formatters:
+  enable:
+  - goimports
+  - gci
+  settings:
+    gci:
+      sections:
+      - standard
+      - default
+      - prefix(github.com/tnozicka/k8s-controller-lib)
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

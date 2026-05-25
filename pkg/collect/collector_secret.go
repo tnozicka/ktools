@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 )
 
 func isPublicSecretKey(key string) bool {
@@ -19,7 +20,7 @@ func isPublicSecretKey(key string) bool {
 	}
 }
 
-func (c *Collector) collectSecret(ctx context.Context, resourceInfo *ResourceInfo, u *unstructured.Unstructured) error {
+func (c *Collector) collectSecret(_ context.Context, resourceInfo *ResourceInfo, u *unstructured.Unstructured) error {
 	secret := &corev1.Secret{}
 	err := runtime.DefaultUnstructuredConverter.FromUnstructured(u.Object, secret)
 	if err != nil {
@@ -32,7 +33,7 @@ func (c *Collector) collectSecret(ctx context.Context, resourceInfo *ResourceInf
 		}
 	}
 
-	err = c.writeObject(ctx, resourceInfo, secret)
+	err = c.writeObject(resourceInfo, secret)
 	if err != nil {
 		return fmt.Errorf("can't write secret %q: %w", clnaming.ObjNN(secret), err)
 	}

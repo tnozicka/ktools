@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/tnozicka/k8s-controller-lib/pkg/kubetypes"
-	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,6 +18,9 @@ import (
 	"k8s.io/client-go/dynamic"
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/klog/v2"
+
+	"github.com/tnozicka/k8s-controller-lib/pkg/kubetypes"
+	clnaming "github.com/tnozicka/k8s-controller-lib/pkg/naming"
 )
 
 const (
@@ -101,7 +102,7 @@ func (c *Collector) getResourceLocation(obj metav1.Object, resourceInfo *Resourc
 		resourceFileName = fmt.Sprintf("%s_%s", gvkString, obj.GetName())
 	}
 
-	scope := resourceInfo.RESTScope.Name()
+	scope := resourceInfo.Name()
 	switch scope {
 	case meta.RESTScopeNameRoot:
 		return filepath.Join(
@@ -125,7 +126,7 @@ func (c *Collector) getResourceLocation(obj metav1.Object, resourceInfo *Resourc
 	}
 }
 
-func (c *Collector) writeObject(ctx context.Context, resourceInfo *ResourceInfo, obj kubetypes.Object) error {
+func (c *Collector) writeObject(resourceInfo *ResourceInfo, obj kubetypes.Object) error {
 	resourceLocation, err := c.getResourceLocation(obj, resourceInfo)
 	if err != nil {
 		return fmt.Errorf("can't get resourceDir: %q", err)
@@ -173,11 +174,11 @@ func (c *Collector) writeObject(ctx context.Context, resourceInfo *ResourceInfo,
 }
 
 func (c *Collector) collectObject(
-	ctx context.Context,
+	_ context.Context,
 	obj kubetypes.Object,
 	resourceInfo *ResourceInfo,
 ) error {
-	err := c.writeObject(ctx, resourceInfo, obj)
+	err := c.writeObject(resourceInfo, obj)
 	if err != nil {
 		return fmt.Errorf("can't write object: %w", err)
 	}
@@ -192,7 +193,7 @@ func (c *Collector) CollectObject(ctx context.Context, u *unstructured.Unstructu
 	}
 	c.collectedResources.Insert(objWithGVR)
 
-	switch resourceInfo.GroupVersionResource.GroupResource() {
+	switch resourceInfo.GroupResource() {
 	case corev1.SchemeGroupVersion.WithResource("secrets").GroupResource():
 		return c.collectSecret(ctx, resourceInfo, u)
 

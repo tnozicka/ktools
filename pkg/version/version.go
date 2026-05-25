@@ -9,10 +9,6 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func ptr[T any](v T) *T {
-	return &v
-}
-
 func OptionalToString[T any](ptr *T) string {
 	if ptr == nil {
 		return "<unknown>"
@@ -47,19 +43,19 @@ func Get() *Info {
 		return &Info{}
 	}
 
-	info.GoVersion = ptr(buildInfo.GoVersion)
+	info.GoVersion = new(buildInfo.GoVersion)
 
 	for _, setting := range buildInfo.Settings {
 		switch setting.Key {
 		case "vcs.revision":
-			info.Revision = ptr(setting.Value)
+			info.Revision = new(setting.Value)
 
 		case "vcs.time":
 			t, err := time.Parse(time.RFC3339, setting.Value)
 			if err != nil {
 				klog.ErrorS(err, "Can't to determine version")
 			} else {
-				info.RevisionTime = ptr(t)
+				info.RevisionTime = new(t)
 			}
 
 		case "vcs.modified":
@@ -67,7 +63,7 @@ func Get() *Info {
 			if err != nil {
 				klog.ErrorS(err, "Can't determine vcs state")
 			} else {
-				info.Modified = ptr(b)
+				info.Modified = new(b)
 			}
 		}
 	}
